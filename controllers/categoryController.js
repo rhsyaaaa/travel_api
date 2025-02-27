@@ -1,78 +1,79 @@
-// filepath: /C:/Users/Rahsya Aditiya/OneDrive/Documents/travel_API/controllers/categoryController.js
-const { Category } = require('../models/category');
+const db = require('../config/db');
 
-// Create a new category
-const createCategory = async (req, res) => {
-    try {
-        const { namacategory, gambarcategory } = req.body;
-        const newCategory = await Category.create({ namacategory, gambarcategory });
-        res.status(201).json(newCategory);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+const createCategory = (req, res) => {
+    console.log(req.body);
+    const { name, image } = req.body;
+
+    if (!name || !image) {
+        return res.status(400).json({ message: 'All fields (name, image) are required' });
     }
-};
 
-// Get all categories
-const getAllCategories = async (req, res) => {
-    try {
-        const categories = await Category.findAll();
-        res.status(200).json(categories);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Get a single category by ID
-const getCategoryById = async (req, res) => {
-    try {
-        const category = await Category.findByPk(req.params.id);
-        if (category) {
-            res.status(200).json(category);
-        } else {
-            res.status(404).json({ error: 'Category not found' });
+    const query = `INSERT INTO categories (name, image) VALUES (?, ?)`;
+    db.run(query, [name, image], function (err) {
+        if (err) {
+            return res.status(500).json({ message: 'Error creating category', error: err.message });
         }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+        res.status(201).json({ message: 'Category created successfully', id: this.lastID });
+    });
 };
 
-// Update a category by ID
-const updateCategoryById = async (req, res) => {
-    try {
-        const { namacategory, gambarcategory } = req.body;
-        const category = await Category.findByPk(req.params.id);
-        if (category) {
-            category.namacategory = namacategory;
-            category.gambarcategory = gambarcategory;
-            await category.save();
-            res.status(200).json(category);
-        } else {
-            res.status(404).json({ error: 'Category not found' });
+const getAllCategories = (req, res) => {
+    const query = `SELECT * FROM categories`;
+    db.all(query, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error retrieving categories', error: err.message });
         }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+        res.status(200).json(rows);
+    });
 };
 
-// Delete a category by ID
-const deleteCategoryById = async (req, res) => {
-    try {
-        const category = await Category.findByPk(req.params.id);
-        if (category) {
-            await category.destroy();
-            res.status(204).send();
-        } else {
-            res.status(404).json({ error: 'Category not found' });
+const getCategoryById = (req, res) => {
+    const query = `SELECT * FROM categories WHERE id = ?`;
+    db.get(query, [req.params.id], (err, row) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error retrieving category', error: err.message });
         }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+        if (row) {
+            res.status(200).json(row);
+        } else {
+            res.status(404).json({ message: 'Category not found' });
+        }
+    });
+};
+
+const updateCategory = (req, res) => {
+    const { name, image } = req.body;
+    const query = `UPDATE categories SET name = ?, image = ? WHERE id = ?`;
+    db.run(query, [name, image, req.params.id], function (err) {
+        if (err) {
+            return res.status(500).json({ message: 'Error updating category', error: err.message });
+        }
+        if (this.changes > 0) {
+            res.status(200).json({ message: 'Category updated successfully' });
+        } else {
+            res.status(404).json({ message: 'Category not found' });
+        }
+    });
+};
+
+const deleteCategory = (req, res) => {
+    const query = `DELETE FROM categories WHERE id = ?`;
+    db.run(query, [req.params.id], function (err) {
+        if (err) {
+            return res.status(500).json({ message: 'Error deleting category', error: err.message });
+        }
+        if (this.changes > 0) {
+            res.status(200).json({ message: 'Category deleted successfully' });
+        } else {
+            res.status(404).json({ message: 'Category not found' });
+        }
+    });
 };
 
 module.exports = {
     createCategory,
     getAllCategories,
     getCategoryById,
-    updateCategoryById,
-    deleteCategoryById
+    updateCategory,
+    deleteCategory
 };

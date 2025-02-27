@@ -1,19 +1,20 @@
-// filepath: /C:/Users/Rahsya Aditiya/OneDrive/Documents/travel_API/middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
 
-const authenticateToken = (req, res, next) => {
-    const token = req.header('Authorization')?.split(' ')[1];
+// Middleware untuk mengecek token JWT
+const authMiddleware = (req, res, next) => {
+    const token = req.header('Authorization');
+    
     if (!token) {
-        return res.status(401).json({ error: 'Access denied, no token provided' });
+        return res.status(401).json({ message: 'Akses ditolak, token tidak tersedia' });
     }
-
+    
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (error) {
-        res.status(400).json({ error: 'Invalid token' });
+        const verified = jwt.verify(token.replace('Bearer ', ''), process.env.SECRET_KEY);
+        req.user = verified; // Menyimpan data pengguna ke dalam request
+        next(); // Lanjut ke route berikutnya
+    } catch (err) {
+        res.status(400).json({ message: 'Token tidak valid' });
     }
 };
 
-module.exports = { authenticateToken };
+module.exports = authMiddleware;

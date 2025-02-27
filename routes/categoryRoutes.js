@@ -1,19 +1,19 @@
 // filepath: /C:/Users/Rahsya Aditiya/OneDrive/Documents/travel_API/routes/categoryRoutes.js
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middleware/authMiddleware');
+const authMiddleware = require('../middleware/authMiddleware');
 const {
     createCategory,
     getAllCategories,
     getCategoryById,
-    updateCategoryById,
-    deleteCategoryById
+    updateCategory,
+    deleteCategory
 } = require('../controllers/categoryController');
 
-router.post('/', authenticateToken, createCategory);
-router.get('/', authenticateToken, getAllCategories);
-router.get('/:id', authenticateToken, getCategoryById);
-router.put('/:id', authenticateToken, updateCategoryById);
-router.delete('/:id', authenticateToken, deleteCategoryById);
+router.post('/', authMiddleware, createCategory);
+router.get('/', authMiddleware, getAllCategories);
+router.get('/:id', authMiddleware, getCategoryById);
+router.put('/:id', authMiddleware, updateCategory);
+router.delete('/:id', authMiddleware, deleteCategory);
 
 module.exports = router;
